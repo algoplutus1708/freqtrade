@@ -1,0 +1,6 @@
+fastapi==0.111.1
+uvicorn[standard]==0.29.0
+requests==2.31.0
+yfinance==0.2.40
+dhanhq==2.0.1
+cachetools==5.3.3

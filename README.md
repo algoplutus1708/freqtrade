@@ -229,3 +229,122 @@ To run this bot we recommend you a cloud instance with a minimum of:
 - [TA-Lib](https://ta-lib.github.io/ta-lib-python/)
 - [virtualenv](https://virtualenv.pypa.io/en/stable/installation.html) (Recommended)
 - [Docker](https://www.docker.com/products/docker) (Recommended)
+
+
+---
+
+## 🤖 AlgoPlutus — Production AI Algo Trading (Indian Market)
+
+> **Automated, AI-powered trading for NSE stocks using Freqtrade + FreqAI + LightGBM + Dhan broker.**
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                  AlgoPlutus — 4-Service Stack                    │
+│                                                                  │
+│  ┌─────────────┐    healthcheck    ┌──────────────────────────┐  │
+│  │ ccxt_proxy  │ ◄──────────────── │    freqtrade bot         │  │
+│  │  :8000      │    yfinance data  │    FreqAI + LightGBM     │  │
+│  │  Dhan API   │    order routing  │    :8080 (REST API)      │  │
+│  └─────────────┘                  └──────────────────────────┘  │
+│         ▲                                    ▲                   │
+│         │                    ┌───────────────┴──────────────┐    │
+│         │                    │   session_controller         │    │
+│         │                    │   Market hours (IST)         │    │
+│         │                    │   NSE holiday calendar       │    │
+│         │                    │   Telegram alerts            │    │
+│         │                    └──────────────────────────────┘    │
+│         │                    ┌──────────────────────────────┐    │
+│         │                    │   risk_manager               │    │
+│         └────────────────────│   Daily loss limit (2%)      │    │
+│                              │   Force-exit + bot stop      │    │
+│                              │   Daily P&L CSV              │    │
+│                              └──────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Trading Logic
+
+- **Stocks**: RELIANCE, TCS, INFY, HDFCBANK (NSE)
+- **Data**: Real-time OHLCV from Yahoo Finance (via CCXT proxy)
+- **ML Model**: LightGBM Regressor — predicts % price change over next 60 min
+- **Features**: RSI, MFI, ADX, Bollinger Bands, MACD, Stochastic (3 timeframes: 5m/15m/1h)
+- **Entry rule**: Model predicts > 0.7% gain AND `do_predict == 1`
+- **Exit rule**: Trailing stop (ATR-based) OR model predicts loss
+- **Risk**: 2% max daily loss → auto force-exit + bot stop + Telegram alert
+- **Hours**: Only trades 9:20 AM – 3:00 PM IST (Mon–Fri, non-holiday)
+
+### Prerequisites
+
+- Docker & Docker Compose v2
+- Dhan trading account → API keys from [console.dhan.co](https://console.dhan.co)
+- Telegram bot (optional but highly recommended)
+
+### Setup
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/algoplutus1708/freqtrade.git
+cd freqtrade
+
+# 2. Configure secrets
+cp env.example .env
+# Edit .env with your Dhan credentials, Telegram token, etc.
+nano .env
+
+# 3. Start in DRY-RUN mode (paper trading — default, safe)
+docker compose --env-file .env up -d
+
+# 4. Follow logs
+docker compose logs -f
+
+# 5. Monitor live dashboard
+bash user_data/scripts/monitor.sh
+
+# 6. When confident — switch to LIVE (edit .env → DRY_RUN=false)
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `DRY_RUN` | Paper trading mode | `true` |
+| `DHAN_CLIENT_ID` | Dhan API client ID | — |
+| `DHAN_ACCESS_TOKEN` | Dhan API access token | — |
+| `TELEGRAM_TOKEN` | Telegram bot token | — |
+| `TELEGRAM_CHAT_ID` | Your Telegram chat ID | — |
+| `MAX_DAILY_LOSS_PCT` | Max daily portfolio drawdown | `0.02` (2%) |
+| `MAX_TRADE_SIZE_INR` | Max single trade size | `50000` |
+| `FREQAI_MODEL` | FreqAI model class | `LightGBMRegressor` |
+
+### Service Ports
+
+| Service | Port | Description |
+|---|---|---|
+| `ccxt_proxy` | `8000` | CCXT/Binance API bridge |
+| `freqtrade` | `8080` | Freqtrade REST API + Web UI |
+
+### Switching to Live Trading
+
+> ⚠️ **This will execute REAL orders on your Dhan account.**
+
+```bash
+# Edit .env
+DRY_RUN=false
+DHAN_CLIENT_ID=<your_real_client_id>
+DHAN_ACCESS_TOKEN=<your_real_access_token>
+
+# Restart
+docker compose --env-file .env down && docker compose --env-file .env up -d
+```
+
+### Troubleshooting
+
+| Issue | Fix |
+|---|---|
+| `ccxt_proxy unhealthy` | Check `docker compose logs ccxt_proxy` — likely yfinance rate limit |
+| `FreqAI model not training` | Need ≥ 200 candles. Wait 30 min after start |
+| `No entry signals` | Check `do_predict` column — model may be in warmup or market closed |
+| `Dhan order failed` | Verify `DHAN_CLIENT_ID` and `DHAN_ACCESS_TOKEN` in `.env` |
+
