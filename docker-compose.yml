@@ -1,6 +1,7 @@
 ---
 # AlgoPlutus — Production Docker Compose
 # Usage: docker compose --env-file .env up -d
+# Quick ops: make up | make down | make logs | make monitor
 
 networks:
   algoplutus:
@@ -30,7 +31,7 @@ services:
              "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
-      start_period: 15s
+      start_period: 20s
       retries: 3
     logging:
       driver: json-file
@@ -51,6 +52,13 @@ services:
       ccxt_proxy:
         condition: service_healthy
     env_file: .env
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - FT_API_USERNAME=${FT_API_USERNAME:-freqtrader}
+      - FT_API_PASSWORD=${FT_API_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - WS_TOKEN=${WS_TOKEN}
     volumes:
       - "./user_data:/freqtrade/user_data"
     ports:
@@ -68,7 +76,7 @@ services:
              "import urllib.request, base64; req=urllib.request.Request('http://localhost:8080/api/v1/ping'); req.add_header('Authorization', 'Basic '+base64.b64encode(b'freqtrader:AlgoPlutus@2026!').decode()); urllib.request.urlopen(req)"]
       interval: 60s
       timeout: 15s
-      start_period: 60s
+      start_period: 90s
       retries: 3
     logging:
       driver: json-file
@@ -97,6 +105,7 @@ services:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - LOG_PATH=/freqtrade/user_data/logs/session_controller.log
+      - POLL_INTERVAL=30
     volumes:
       - "./user_data:/freqtrade/user_data"
     restart: unless-stopped
@@ -128,6 +137,7 @@ services:
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - MAX_DAILY_LOSS_PCT=${MAX_DAILY_LOSS_PCT:-0.02}
       - MAX_TRADE_SIZE_INR=${MAX_TRADE_SIZE_INR:-50000}
+      - INITIAL_BALANCE_INR=${INITIAL_BALANCE_INR:-100000}
       - LOG_PATH=/freqtrade/user_data/logs/risk_manager.log
     volumes:
       - "./user_data:/freqtrade/user_data"

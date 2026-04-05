@@ -1,0 +1,190 @@
+{
+    "max_open_trades": 6,
+    "stake_currency": "INR",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.90,
+    "available_capital": 100000,
+    "fiat_display_currency": "INR",
+    "dry_run": true,
+    "dry_run_wallet": 100000,
+    "cancel_open_orders_on_exit": true,
+    "timeframe": "5m",
+
+    "order_types": {
+        "entry": "limit",
+        "exit": "limit",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+
+    "unfilledtimeout": {
+        "entry": 10,
+        "exit": 10,
+        "exit_timeout_count": 0,
+        "unit": "minutes"
+    },
+
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exchange": {
+        "name": "binance",
+        "key": "MOCK_KEY",
+        "secret": "MOCK_SECRET",
+        "ccxt_config": {
+            "enableRateLimit": false,
+            "urls": {
+                "api": {
+                    "public":  "http://ccxt_proxy:8000/api/v3",
+                    "private": "http://ccxt_proxy:8000/api/v3"
+                }
+            }
+        },
+        "ccxt_async_config": {
+            "enableRateLimit": false,
+            "urls": {
+                "api": {
+                    "public":  "http://ccxt_proxy:8000/api/v3",
+                    "private": "http://ccxt_proxy:8000/api/v3"
+                }
+            }
+        },
+        "pair_whitelist": [
+            "RELIANCE/INR",
+            "TCS/INR",
+            "INFY/INR",
+            "HDFCBANK/INR",
+            "WIPRO/INR",
+            "ICICIBANK/INR",
+            "BAJFINANCE/INR",
+            "HINDUNILVR/INR",
+            "SBIN/INR",
+            "KOTAKBANK/INR"
+        ],
+        "pair_blacklist": []
+    },
+
+    "pairlists": [
+        {"method": "StaticPairList"}
+    ],
+
+    "protections": [
+        {
+            "method": "StoplossGuard",
+            "lookback_period_candles": 24,
+            "trade_limit": 2,
+            "stop_duration_candles": 4,
+            "only_per_pair": false
+        },
+        {
+            "method": "CooldownPeriod",
+            "stop_duration_candles": 2
+        },
+        {
+            "method": "LowProfitPairs",
+            "lookback_period_candles": 48,
+            "trade_limit": 2,
+            "stop_duration_candles": 6,
+            "required_profit": 0.0
+        },
+        {
+            "method": "MaxDrawdown",
+            "lookback_period_candles": 48,
+            "trade_limit": 2,
+            "stop_duration_candles": 4,
+            "max_allowed_drawdown": 0.15
+        }
+    ],
+
+    "telegram": {
+        "enabled": true,
+        "token": "${TELEGRAM_TOKEN}",
+        "chat_id": "${TELEGRAM_CHAT_ID}",
+        "notification_settings": {
+            "status":                    "on",
+            "warning":                   "on",
+            "startup":                   "on",
+            "entry":                     "on",
+            "entry_fill":                "on",
+            "entry_cancel":              "on",
+            "exit": {
+                "roi":                   "on",
+                "emergency_exit":        "on",
+                "force_exit":            "on",
+                "exit_signal":           "on",
+                "trailing_stop_loss":    "on",
+                "stop_loss":             "on",
+                "stoploss_on_exchange":  "on",
+                "other":                 "on"
+            },
+            "exit_cancel":               "on",
+            "protection_trigger":        "on",
+            "protection_trigger_global": "on"
+        }
+    },
+
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "enable_openapi": true,
+        "jwt_secret_key": "${JWT_SECRET_KEY}",
+        "ws_token": "${WS_TOKEN}",
+        "CORS_origins": [],
+        "username": "${FT_API_USERNAME}",
+        "password": "${FT_API_PASSWORD}"
+    },
+
+    "freqai": {
+        "enabled": true,
+        "purge_old_models": 2,
+        "train_period_days": 30,
+        "backtest_period_days": 7,
+        "identifier": "indian_market_lgbm_v3",
+        "live_retrain_hours": 2,
+        "expiration_hours": 2,
+        "feature_parameters": {
+            "include_timeframes": ["5m", "15m", "1h"],
+            "include_corr_pairlist": [],
+            "label_period_candles": 12,
+            "weight_factor": 0.9,
+            "indicator_periods_candles": [10, 20, 50],
+            "plot_metrics": true
+        },
+        "data_split_parameters": {
+            "test_size": 0.15,
+            "random_state": 42,
+            "shuffle": false
+        },
+        "model_training_parameters": {
+            "n_estimators": 300,
+            "learning_rate": 0.03,
+            "max_depth": 6,
+            "min_child_samples": 20,
+            "num_leaves": 63,
+            "verbose": -1
+        }
+    },
+
+    "bot_name": "algoplutus_indian_market",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "internals": {
+        "process_throttle_secs": 5
+    }
+}

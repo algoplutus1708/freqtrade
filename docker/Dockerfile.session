@@ -1,8 +1,13 @@
 FROM python:3.11-slim
+
 WORKDIR /app
+
 RUN pip install --no-cache-dir \
     requests==2.31.0 \
     pytz==2024.1
+
 COPY user_data/scripts/session_controller.py /app/session_controller.py
 COPY user_data/scripts/risk_manager.py /app/risk_manager.py
+
+# Default to session controller; override with `command:` in docker-compose
 CMD ["python", "-u", "/app/session_controller.py"]

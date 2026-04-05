@@ -117,5 +117,47 @@ target/
 
 docker-compose-*.yml
 
-# AlgoPlutus secrets & runtime
-user_data/logs/daily_pnl.csv
+# ── AlgoPlutus — Secrets & Runtime artifacts ─────────────────────────────────
+# CRITICAL: .env already covered above (line 103) but explicitly called out
+.env
+
+# Never commit trained ML models (can be 100s of MB)
+user_data/freqaimodels/**
+!user_data/freqaimodels/.gitkeep
+
+# Runtime database files
+user_data/tradesv3.sqlite
+user_data/tradesv3.sqlite-shm
+user_data/tradesv3.sqlite-wal
+
+# Backtest & hyperopt artifacts (large binary files)
+user_data/backtest_results/**
+!user_data/backtest_results/.gitkeep
+user_data/hyperopt_results/**
+!user_data/hyperopt_results/.gitkeep
+
+# P&L and log files
+user_data/logs/**
+!user_data/logs/.gitkeep
+
+# Downloaded market data
+user_data/data/**
+!user_data/data/.gitkeep
+
+# Plot outputs
+user_data/plot/**
+!user_data/plot/.gitkeep
+
+# Explicitly KEEP all source code files in user_data
+!user_data/strategies/
+!user_data/strategies/*.py
+!user_data/scripts/
+!user_data/scripts/*.py
+!user_data/scripts/*.sh
+!user_data/proxy/
+!user_data/proxy/*.py
+!user_data/proxy/*.txt
+!user_data/proxy/Dockerfile
+!user_data/config_freqai.json
+!user_data/freqaimodels/
+!user_data/hyperopts/
