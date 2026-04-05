@@ -1,11 +1,13 @@
-FROM freqtradeorg/freqtrade:develop
+FROM freqtradeorg/freqtrade:stable
 
-# Switch user to root if you must install something from apt
-# Don't forget to switch the user back below!
-# USER root
+# Install FreqAI + extra dependencies
+USER root
+RUN pip install --no-cache-dir \
+    lightgbm==4.3.0 \
+    pandas_ta==0.3.14b \
+    pytz==2024.1 \
+    requests==2.31.0 \
+    scikit-learn==1.4.2 \
+    xgboost==2.0.3
 
-# The below dependency - pyti - serves as an example. Please use whatever you need!
-RUN pip install --user pyti
-
-# Switch back to user (only if you required root above)
-# USER ftuser
+USER ftuser
